@@ -5,6 +5,7 @@ import re
 import subprocess
 import uuid
 import glob
+from os.path import join
 
 from flask import *
 app = Flask(__name__)
@@ -14,24 +15,27 @@ file_list = dict()
 def get_movie_duration(path):
   result = subprocess.Popen(["ffprobe", path], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
   for line in result.stdout.readlines():
-    match = re.search("Duration: (\d\d):(\d\d):(\d\d)", line)
-    if match:
-      return (int(match.group(1)) * 3600) + (int(match.group(2)) * 60) + (int(match.group(3)))
+    # match = re.search("Duration: (\d\d):(\d\d):(\d\d)", line)
+    # if match:
+    #   return (int(match.group(1)) * 3600) + (int(match.group(2)) * 60) + (int(match.group(3)))
+    pass
   return 0
 
 def generate_file_list(directory):
   types = ('*.mkv', '*.mp4')
-  file = glob.glob("*.txt")
   file_grabbed = []
-  for files in types:
-    file_grabbed.extend(glob.glob(files))
-    for path in file_grabbed:
-      file_data = {"duration" : get_movie_duration(path),
-        "fileSize" : os.path.getsize(path),
-        "localPath" : path,
-        "mimeType" : 'video/x-matroska' if path.endswith(".mkv") else 'video/mp4'}
-      print("Adding: %s, %d seconds, %d bytes" % (filename, file_data["duration"], file_data["fileSize"]))
-      file_list[filename] = file_data
+  for ext in types:
+    file_grabbed.extend(glob.glob(join(directory, ext), recursive=True))
+
+  print("Found " + str(len(file_grabbed)) + " files")
+    
+  for path in file_grabbed:
+    file_data = {"duration" : get_movie_duration(path),
+      "fileSize" : os.path.getsize(path),
+      "localPath" : path,
+      "mimeType" : 'video/x-matroska' if path.endswith(".mkv") else 'video/mp4'}
+    print("Adding: %s, %d seconds, %d bytes" % (path, file_data["duration"], file_data["fileSize"]))
+    file_list[path] = file_data
 
 def send_file_partial(path, mimetype):
   range_header = request.headers.get('Range', None)
