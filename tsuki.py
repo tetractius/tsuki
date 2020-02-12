@@ -20,18 +20,26 @@ def get_movie_duration(path):
   return 0
 
 def generate_file_list(directory):
-  types = ('*.mkv', '*.mp4')
-  file = glob.glob("*.txt")
+  types = ("*.mkv", "*.mp4")
   file_grabbed = []
-  for files in types:
-    file_grabbed.extend(glob.glob(files))
-    for path in file_grabbed:
-      file_data = {"duration" : get_movie_duration(path),
-        "fileSize" : os.path.getsize(path),
-        "localPath" : path,
-        "mimeType" : 'video/x-matroska' if path.endswith(".mkv") else 'video/mp4'}
-      print("Adding: %s, %d seconds, %d bytes" % (filename, file_data["duration"], file_data["fileSize"]))
-      file_list[filename] = file_data
+
+  counter = 0;
+
+  for ext in types:
+    file_grabbed.extend(glob.glob(join(directory, "**", ext), recursive=True))
+  
+  for path in file_grabbed:
+    file_data = {
+    "duration" : get_movie_duration(path),
+    "fileSize" : os.path.getsize(path),
+    "localPath" : path,
+    "mimeType" : 'video/x-matroska' if path.endswith(".mkv") else 'video/mp4'}
+    print("Adding: %s, %d seconds, %d bytes" % (path, 
+                                                file_data["duration"], 
+                                                file_data["fileSize"]))
+    # file_list[os.path.basename(filename)] = file_data
+    file_list[str(counter).zfill(6)] = file_data
+    counter += 1
 
 def send_file_partial(path, mimetype):
   range_header = request.headers.get('Range', None)
