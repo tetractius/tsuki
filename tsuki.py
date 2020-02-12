@@ -5,6 +5,7 @@ import re
 import subprocess
 import uuid
 import glob
+from os.path import join
 
 from flask import *
 app = Flask(__name__)
@@ -14,9 +15,10 @@ file_list = dict()
 def get_movie_duration(path):
   result = subprocess.Popen(["ffprobe", path], stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
   for line in result.stdout.readlines():
-    match = re.search("Duration: (\d\d):(\d\d):(\d\d)", line)
-    if match:
-      return (int(match.group(1)) * 3600) + (int(match.group(2)) * 60) + (int(match.group(3)))
+    # match = re.search("Duration: (\d\d):(\d\d):(\d\d)", line)
+    # if match:
+    #   return (int(match.group(1)) * 3600) + (int(match.group(2)) * 60) + (int(match.group(3)))
+    pass
   return 0
 
 def generate_file_list(directory):
@@ -40,6 +42,7 @@ def generate_file_list(directory):
     # file_list[os.path.basename(filename)] = file_data
     file_list[str(counter).zfill(6)] = file_data
     counter += 1
+
 
 def send_file_partial(path, mimetype):
   range_header = request.headers.get('Range', None)
